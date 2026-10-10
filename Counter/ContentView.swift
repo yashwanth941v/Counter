@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var showSettings = false
     @State private var rating: Int = 0
+    @State private var test = true
     private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
 
     var body: some View {
@@ -74,10 +76,27 @@ struct ContentView: View {
             }
 
         }
+        .sheet(isPresented: $showSettings) {
 
+            NavigationStack {
+                
+                Form {
+                    Section("Message List") {
+                        Toggle("Show To/Cc Labels", isOn: $test)
+                    }
+                }.navigationTitle("Settings")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(role: .close) {
+                                dismiss()
+                            }
+                        }
+                    }
+            }.presentationDragIndicator(.visible)
+        }
     }
 }
-
 #Preview {
     ContentView()
 }
