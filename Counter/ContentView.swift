@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(\.dismiss) private var dismiss
     @State private var showSettings = false
     @State private var rating: Int = 0
     @State private var test = true
@@ -79,9 +78,9 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
 
             NavigationStack {
-                
+
                 Form {
-                    Section("Message List") {
+                    Section {
                         Toggle("Show To/Cc Labels", isOn: $test)
                     }
                 }.navigationTitle("Settings")
@@ -89,7 +88,7 @@ struct ContentView: View {
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button(role: .close) {
-                                dismiss()
+                                showSettings = false
                             }
                         }
                     }
