@@ -10,16 +10,15 @@ import SwiftUI
 struct ContentView: View {
     @State private var rating: Int = 0
     @FocusState private var isFocused: Bool
- 
+
     var body: some View {
         HStack(spacing: 16) {
             Button("Decrease", systemImage: "minus.circle") {
-                withAnimation{ rating -= 1}
+                withAnimation { rating -= 1 }
             }
             .disabled(rating == 0)
             .buttonRepeatBehavior(.enabled)
 
-            
             ZStack {
                 Text("\(rating)")
                     .contentTransition(.numericText(value: Double(rating)))
@@ -38,15 +37,18 @@ struct ContentView: View {
             .frame(width: 80)
             .contentShape(Rectangle())
             .onTapGesture { isFocused = true }
-            
-            Button("Increase", systemImage: "plus.circle") {
-               withAnimation{
-                   rating += 1
+
+            Button("Increase", systemImage: "plus̨̨") {
+                withAnimation {
+                    rating += 1
 
                 }
-            }
-            .disabled(rating == 999)
-            .buttonRepeatBehavior(.enabled)
+            }.buttonStyle(.glass)
+                .labelStyle(.iconOnly)
+                .buttonBorderShape(.circle)
+                .font(.title)
+                .disabled(rating == 999)
+                .buttonRepeatBehavior(.enabled)
 
         }
         .labelStyle(.iconOnly)
