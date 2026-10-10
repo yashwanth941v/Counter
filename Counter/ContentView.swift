@@ -15,24 +15,30 @@ struct ContentView: View {
             Button {
                 withAnimation { rating -= 1 }
             } label: {
-                Image(systemName: "minus")
-                    .frame(width: 40, height: 40)
+                Image(systemName: "minus").font(
+                    .system(size: 30, weight: .bold)
+                )
+                .frame(width: 55, height: 55)
             }
             .accessibilityLabel("Decrease")
             .disabled(rating == 0)
             .buttonRepeatBehavior(.enabled)
 
             Text("\(rating)")
-                .font(.system(.title, design: .monospaced))
-                .frame(minWidth: 60)
+                .font(
+                    .system(size: 64, weight: .bold, design: .rounded)
+                        .monospacedDigit()
+                )
+                .frame(minWidth: 100)
                 .contentTransition(.numericText(value: Double(rating)))
 
             Button {
                 withAnimation { rating += 1 }
             } label: {
-                Image(systemName: "plus")
-                    .frame(width: 40, height: 40)
-                    
+                Image(systemName: "plus").font(
+                    .system(size: 30, weight: .bold)
+                )
+                .frame(width: 55, height: 55)
             }
             .accessibilityLabel("Increase")
             .disabled(rating == 999)
@@ -40,7 +46,7 @@ struct ContentView: View {
         }
         .buttonStyle(.glass)
         .buttonBorderShape(.circle)
-        
+
         .font(.title)
         .padding()
     }
