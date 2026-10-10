@@ -9,49 +9,38 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var rating: Int = 0
-    @FocusState private var isFocused: Bool
 
     var body: some View {
         HStack(spacing: 16) {
-            Button("Decrease", systemImage: "minus.circle") {
+            Button {
                 withAnimation { rating -= 1 }
+            } label: {
+                Image(systemName: "minus")
+                    .frame(width: 40, height: 40)
             }
+            .accessibilityLabel("Decrease")
             .disabled(rating == 0)
             .buttonRepeatBehavior(.enabled)
 
-            ZStack {
-                Text("\(rating)")
-                    .contentTransition(.numericText(value: Double(rating)))
-                    .opacity(isFocused ? 0 : 1)
+            Text("\(rating)")
+                .font(.system(.title, design: .monospaced))
+                .frame(minWidth: 60)
+                .contentTransition(.numericText(value: Double(rating)))
 
-                TextField("0", value: $rating, format: .number)
-                    .keyboardType(.numberPad)
-                    .focused($isFocused)
-                    .opacity(isFocused ? 1 : 0)
-                    .onChange(of: rating) { _, newValue in
-                        rating = min(max(newValue, 0), 999)
-                    }
+            Button {
+                withAnimation { rating += 1 }
+            } label: {
+                Image(systemName: "plus")
+                    .frame(width: 40, height: 40)
+                    
             }
-            .multilineTextAlignment(.center)
-            .font(.system(.title, design: .monospaced))
-            .frame(width: 80)
-            .contentShape(Rectangle())
-            .onTapGesture { isFocused = true }
-
-            Button("Increase", systemImage: "plus̨̨") {
-                withAnimation {
-                    rating += 1
-
-                }
-            }.buttonStyle(.glass)
-                .labelStyle(.iconOnly)
-                .buttonBorderShape(.circle)
-                .font(.title)
-                .disabled(rating == 999)
-                .buttonRepeatBehavior(.enabled)
-
+            .accessibilityLabel("Increase")
+            .disabled(rating == 999)
+            .buttonRepeatBehavior(.enabled)
         }
-        .labelStyle(.iconOnly)
+        .buttonStyle(.glass)
+        .buttonBorderShape(.circle)
+        
         .font(.title)
         .padding()
     }
