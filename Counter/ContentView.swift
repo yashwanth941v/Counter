@@ -10,8 +10,12 @@ import SwiftUI
 struct ContentView: View {
     @State private var showSettings = false
     @State private var rating: Int = 0
-    @State private var test = true
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
+    @State private var hapticStyle: UIImpactFeedbackGenerator.FeedbackStyle = .medium
+    @State private var hapticsEnabled: Bool = true
+    private var impactFeedback: UIImpactFeedbackGenerator? {
+        guard hapticsEnabled else { return nil }
+        return UIImpactFeedbackGenerator(style: hapticStyle)
+    }
 
     var body: some View {
 
@@ -20,7 +24,7 @@ struct ContentView: View {
             HStack(spacing: 16) {
                 Button {
                     withAnimation { rating -= 1 }
-                    impactFeedback.impactOccurred()
+                    impactFeedback?.impactOccurred()
                 } label: {
                     Image(systemName: "minus").font(
                         .system(size: 30, weight: .bold)
@@ -41,7 +45,7 @@ struct ContentView: View {
 
                 Button {
                     withAnimation { rating += 1 }
-                    impactFeedback.impactOccurred()
+                    impactFeedback?.impactOccurred()
                 } label: {
                     Image(systemName: "plus").font(
                         .system(size: 30, weight: .bold)
@@ -75,27 +79,71 @@ struct ContentView: View {
             }
 
         }
-        .sheet(isPresented: $showSettings) {
-
-            NavigationStack {
-
-                Form {
-                    Section {
-                        Toggle("Show To/Cc Labels", isOn: $test)
-                    }
-                }.navigationTitle("Settings")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button(role: .close) {
-                                showSettings = false
-                            }
-                        }
-                    }
-            }.presentationDragIndicator(.visible)
+.sheet(isPresented: $showSettings) {
+            SettingsSheet(hapticStyle: $hapticStyle, hapticsEnabled: $hapticsEnabled)
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.medium, .large])
         }
     }
 }
+
+struct SettingsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var hapticStyle: UIImpactFeedbackGenerator.FeedbackStyle
+    @Binding var hapticsEnabled: Bool
+    private let styles: [(UIImpactFeedbackGenerator.FeedbackStyle, String, String)] = [
+        (.light, "Light", "Subtle tap — gentle feedback"),
+        (.medium, "Medium", "Noticeable bump — standard feedback"),
+        (.heavy, "Heavy", "Strong thud — prominent feedback"),
+        (.rigid, "Rigid", "Sharp click — precise feedback"),
+        (.soft, "Soft", "Muted pop — delicate feedback")
+    ]
+
+    private var currentDescription: String {
+        if hapticsEnabled {
+            return styles.first { $0.0 == hapticStyle }?.2 ?? ""
+        }
+        return "No haptic feedback"
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Toggle("Enable Haptics", isOn: $hapticsEnabled)
+                    Picker("Haptic Style", selection: $hapticStyle) {
+                        ForEach(styles, id: \.0) { style, name, description in
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(name)
+                                Text(description)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .tag(style)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(.secondary)
+                    .disabled(!hapticsEnabled)
+                } footer: {
+                    Text(currentDescription)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(role: .close) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     ContentView()
 }
