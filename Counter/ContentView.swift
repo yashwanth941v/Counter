@@ -37,6 +37,7 @@ enum HapticStyle: String, CaseIterable, Identifiable {
 struct ContentView: View {
     @State private var showSettings = false
     @State private var rating: Int = 0
+    @State private var reset = false
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
     @AppStorage("hapticStyle") private var hapticStyle: HapticStyle = .soft
     private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
@@ -65,6 +66,7 @@ struct ContentView: View {
                     )
                     .frame(minWidth: 100)
                     .contentTransition(.numericText(value: Double(rating)))
+                    
 
                 Button {
                     withAnimation { rating += 1 }
@@ -96,13 +98,22 @@ struct ContentView: View {
                 }.sharedBackgroundVisibility(.hidden)
 
                 ToolbarItem(placement: .topBarTrailing) {
+                                    Button {
+                                        withAnimation { rating = 0 }
+                                    } label: {
+                                        Image(systemName: "arrow.counterclockwise")
+                                    }
+                                    .accessibilityLabel("Reset counter")
+                                    .disabled(rating == 0)
+                                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showSettings = true
                     } label: {
                         Image(systemName: "gearshape.fill")
                     }
                 }
-
+                
             }
 
         }
