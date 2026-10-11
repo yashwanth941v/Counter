@@ -54,88 +54,137 @@ struct ContentView: View {
     private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
     @AppStorage("buttonPlacement") private var buttonPlacement:
         ButtonPlacement = .center
+    private var bottomLayout: some View {
+        Text("\(rating)")
+            .font(
+                .system(size: 64, weight: .bold, design: .rounded)
+                    .monospacedDigit()
+            )
+            .frame(width: 200, height: 200)
+            .contentTransition(.numericText(value: Double(rating)))
+            .glassEffect(.regular.interactive())
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 12) {
+                    Button {
+                        withAnimation { rating += 1 }
+                    } label: {
+                        Image(systemName: "plus").font(
+                            .system(size: 24, weight: .bold)
 
-    var body: some View {
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 50)
 
-        NavigationStack {
+                    }
+                    .accessibilityLabel("Increase")
+                    .disabled(rating == 999)
+                    .buttonRepeatBehavior(.enabled)
+                    Button {
+                        withAnimation { rating -= 1 }
+                    } label: {
+                        Image(systemName: "minus").font(
+                            .system(size: 24, weight: .bold)
+
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 50)
+
+                    }
+                    .accessibilityLabel("Decrease")
+                    .disabled(rating == 0)
+                    .buttonRepeatBehavior(.enabled)
+
+                }.buttonStyle(.glass)
+                    .buttonBorderShape(.roundedRectangle(radius: 999))
+                    .font(.title)
+                    .padding()
+            }
+
+    }
+    private var centerLayout: some View {
+        HStack(spacing: 16) {
+            Button {
+                withAnimation { rating -= 1 }
+            } label: {
+                Image(systemName: "minus").font(
+                    .system(size: 30, weight: .bold)
+                )
+                .frame(width: 55, height: 55)
+            }
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .font(.title)
+            .padding()
+            .accessibilityLabel("Decrease")
+            .disabled(rating == 0)
+            .buttonRepeatBehavior(.enabled)
 
             Text("\(rating)")
                 .font(
                     .system(size: 64, weight: .bold, design: .rounded)
                         .monospacedDigit()
                 )
-                .frame(width: 200, height: 200)
+                .frame(minWidth: 100)
                 .contentTransition(.numericText(value: Double(rating)))
-                .glassEffect(.regular.interactive())
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .safeAreaInset(edge: .bottom) {
-                    VStack(spacing: 12) {
-                        Button {
-                            withAnimation { rating += 1 }
-                        } label: {
-                            Image(systemName: "plus").font(
-                                .system(size: 24, weight: .bold)
 
-                            )
-                            .frame(maxWidth: .infinity, minHeight: 50)
+            Button {
+                withAnimation { rating += 1 }
+            } label: {
+                Image(systemName: "plus").font(
+                    .system(size: 30, weight: .bold)
+                )
+                .frame(width: 55, height: 55)
+            }
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .font(.title)
+            .padding()
+            .accessibilityLabel("Increase")
+            .disabled(rating == 999)
+            .buttonRepeatBehavior(.enabled)
+        }
+    }
+    var body: some View {
 
-                        }
-                        .accessibilityLabel("Increase")
-                        .disabled(rating == 999)
-                        .buttonRepeatBehavior(.enabled)
-                        Button {
-                            withAnimation { rating -= 1 }
-                        } label: {
-                            Image(systemName: "minus").font(
-                                .system(size: 24, weight: .bold)
+        NavigationStack {
+            Group {
+                switch buttonPlacement {
+                case .center: centerLayout
+                case .bottom: bottomLayout
+                }
+            }
+            .onChange(of: rating) {
+                if hapticsEnabled {
+                    UIImpactFeedbackGenerator(
+                        style: hapticStyle.uiStyle
+                    )
+                    .impactOccurred()
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Counter").font(.largeTitle).bold(true)
+                        .fixedSize(horizontal: true, vertical: false)
 
-                            )
-                            .frame(maxWidth: .infinity, minHeight: 50)
+                }.sharedBackgroundVisibility(.hidden)
 
-                        }
-                        .accessibilityLabel("Decrease")
-                        .disabled(rating == 0)
-                        .buttonRepeatBehavior(.enabled)
-
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        withAnimation { rating = 0 }
+                    } label: {
+                        Image(systemName: "arrow.counterclockwise")
+                    }
+                    .accessibilityLabel("Reset counter")
+                    .disabled(rating == 0)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
                     }
                 }
-                .buttonStyle(.glass)
-                .buttonBorderShape(.roundedRectangle(radius: 999))
-                .font(.title)
-                .padding()
-                .onChange(of: rating) {
-                    if hapticsEnabled {
-                        UIImpactFeedbackGenerator(
-                            style: hapticStyle.uiStyle
-                        )
-                        .impactOccurred()
-                    }
-                }
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Text("Counter").font(.largeTitle).bold(true)
-                            .fixedSize(horizontal: true, vertical: false)
 
-                    }.sharedBackgroundVisibility(.hidden)
-
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            withAnimation { rating = 0 }
-                        } label: {
-                            Image(systemName: "arrow.counterclockwise")
-                        }
-                        .accessibilityLabel("Reset counter")
-                        .disabled(rating == 0)
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                        }
-                    }
-
-                }
+            }
         }
 
         .sheet(isPresented: $showSettings) {
@@ -159,7 +208,7 @@ struct ContentView: View {
                         }
                         .disabled(!hapticsEnabled)
                     } header: {
-                        Text("Haptics")
+                        Text("Touch Feedback")
                     } footer: {
                         if hapticsEnabled {
                             Text(hapticStyle.detail)
