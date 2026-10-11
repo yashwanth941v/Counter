@@ -7,10 +7,38 @@
 
 import SwiftUI
 
+enum HapticStyle: String, CaseIterable, Identifiable {
+    case soft, light, medium, rigid, heavy
+
+    var id: String { rawValue }
+    var title: String { rawValue.capitalized }
+
+    var uiStyle: UIImpactFeedbackGenerator.FeedbackStyle {
+        switch self {
+        case .soft: .soft
+        case .light: .light
+        case .medium: .medium
+        case .rigid: .rigid
+        case .heavy: .heavy
+
+        }
+    }
+    var detail: String {
+        switch self {
+        case .soft: "A cushioned, muffled tap."
+        case .light: "A small, quick tap."
+        case .medium: "A balanced tap."
+        case .rigid: "A sharp, crisp click."
+        case .heavy: "A strong, weighty thump."
+        }
+    }
+}
+
 struct ContentView: View {
     @State private var showSettings = false
     @State private var rating: Int = 0
-    @State private var test = true
+    @AppStorage("hapticsEnabled") private var hapticsEnabled = true
+    @AppStorage("hapticStyle") private var hapticStyle: HapticStyle = .soft
     private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
 
     var body: some View {
@@ -20,7 +48,6 @@ struct ContentView: View {
             HStack(spacing: 16) {
                 Button {
                     withAnimation { rating -= 1 }
-                    impactFeedback.impactOccurred()
                 } label: {
                     Image(systemName: "minus").font(
                         .system(size: 30, weight: .bold)
@@ -41,7 +68,6 @@ struct ContentView: View {
 
                 Button {
                     withAnimation { rating += 1 }
-                    impactFeedback.impactOccurred()
                 } label: {
                     Image(systemName: "plus").font(
                         .system(size: 30, weight: .bold)
@@ -54,9 +80,14 @@ struct ContentView: View {
             }
             .buttonStyle(.glass)
             .buttonBorderShape(.circle)
-
             .font(.title)
             .padding()
+            .onChange(of: rating) {
+                if hapticsEnabled {
+                    UIImpactFeedbackGenerator(style: hapticStyle.uiStyle)
+                        .impactOccurred()
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Text("Counter").font(.largeTitle).bold(true)
@@ -81,7 +112,19 @@ struct ContentView: View {
 
                 Form {
                     Section {
-                        Toggle("Show To/Cc Labels", isOn: $test)
+                        Toggle("Haptics", isOn: $hapticsEnabled)
+                        Picker("Style", selection: $hapticStyle) {
+                            ForEach(HapticStyle.allCases) { style in
+                                Text(style.title).tag(style)
+                            }
+                        }
+                        .disabled(!hapticsEnabled)
+                    } footer: {
+                        if hapticsEnabled {
+                            Text(hapticStyle.detail)
+                        } else {
+                            Text("Haptics are disabled.")
+                        }
                     }
                 }.navigationTitle("Settings")
                     .navigationBarTitleDisplayMode(.inline)
@@ -93,6 +136,8 @@ struct ContentView: View {
                         }
                     }
             }.presentationDragIndicator(.visible)
+                .presentationDetents([.medium, .large])
+
         }
     }
 }
