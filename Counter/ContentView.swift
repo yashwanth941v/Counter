@@ -46,112 +46,123 @@ struct ContentView: View {
 
         NavigationStack {
 
-            HStack(spacing: 16) {
-                Button {
-                    withAnimation { rating -= 1 }
-                } label: {
-                    Image(systemName: "minus").font(
-                        .system(size: 30, weight: .bold)
-                    )
-                    .frame(width: 55, height: 55)
-                }
-                .accessibilityLabel("Decrease")
-                .disabled(rating == 0)
-                .buttonRepeatBehavior(.enabled)
+            
 
-                Text("\(rating)")
-                    .font(
-                        .system(size: 64, weight: .bold, design: .rounded)
-                            .monospacedDigit()
-                    )
-                    .frame(minWidth: 100)
-                    .contentTransition(.numericText(value: Double(rating)))
-                    
+            Text("\(rating)")
+                .font(
+                    .system(size: 64, weight: .bold, design: .rounded)
+                        .monospacedDigit()
+                )
+                .frame(width: 200, height: 200)
+                .contentTransition(.numericText(value: Double(rating)))
+                .glassEffect(.regular.interactive())
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .safeAreaInset(edge: .bottom){
+                    VStack(spacing: 12) {
+                        Button {
+                            withAnimation { rating += 1 }
+                        } label: {
+                            Image(systemName: "plus").font(
+                                .system(size: 24, weight: .bold)
+                                
+                            )
+                            .frame(maxWidth: .infinity, minHeight: 50)
 
-                Button {
-                    withAnimation { rating += 1 }
-                } label: {
-                    Image(systemName: "plus").font(
-                        .system(size: 30, weight: .bold)
-                    )
-                    .frame(width: 55, height: 55)
-                }
-                .accessibilityLabel("Increase")
-                .disabled(rating == 999)
-                .buttonRepeatBehavior(.enabled)
-            }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
-            .font(.title)
-            .padding()
-            .onChange(of: rating) {
-                if hapticsEnabled {
-                    UIImpactFeedbackGenerator(style: hapticStyle.uiStyle)
-                        .impactOccurred()
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Text("Counter").font(.largeTitle).bold(true)
-                        .fixedSize(horizontal: true, vertical: false)
-
-                }.sharedBackgroundVisibility(.hidden)
-
-                ToolbarItem(placement: .topBarTrailing) {
-                                    Button {
-                                        withAnimation { rating = 0 }
-                                    } label: {
-                                        Image(systemName: "arrow.counterclockwise")
-                                    }
-                                    .accessibilityLabel("Reset counter")
-                                    .disabled(rating == 0)
-                                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                    }
-                }
-                
-            }
-
-        }
-        .sheet(isPresented: $showSettings) {
-
-            NavigationStack {
-
-                Form {
-                    Section {
-                        Toggle("Haptics", isOn: $hapticsEnabled)
-                        Picker("Style", selection: $hapticStyle) {
-                            ForEach(HapticStyle.allCases) { style in
-                                Text(style.title).tag(style)
-                            }
                         }
-                        .disabled(!hapticsEnabled)
-                    } footer: {
+                        .accessibilityLabel("Increase")
+                        .disabled(rating == 999)
+                        .buttonRepeatBehavior(.enabled)
+                        Button {
+                            withAnimation { rating -= 1 }
+                        } label: {
+                            Image(systemName: "minus").font(
+                                .system(size: 24, weight: .bold)
+                                
+                            )
+                            .frame(maxWidth: .infinity, minHeight: 50)
+
+                        }
+                        .accessibilityLabel("Decrease")
+                        .disabled(rating == 0)
+                        .buttonRepeatBehavior(.enabled)
+                        
+                    }
+                    }
+                    .buttonStyle(.glass)
+                    .buttonBorderShape(.roundedRectangle(radius: 999))
+                    .font(.title)
+                    .padding()
+                    .onChange(of: rating) {
                         if hapticsEnabled {
-                            Text(hapticStyle.detail)
-                        } else {
-                            Text("Haptics are disabled.")
+                            UIImpactFeedbackGenerator(
+                                style: hapticStyle.uiStyle
+                            )
+                            .impactOccurred()
                         }
                     }
-                }.navigationTitle("Settings")
-                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Text("Counter").font(.largeTitle).bold(true)
+                                .fixedSize(horizontal: true, vertical: false)
+
+                        }.sharedBackgroundVisibility(.hidden)
+
                         ToolbarItem(placement: .topBarTrailing) {
-                            Button(role: .close) {
-                                showSettings = false
+                            Button {
+                                withAnimation { rating = 0 }
+                            } label: {
+                                Image(systemName: "arrow.counterclockwise")
+                            }
+                            .accessibilityLabel("Reset counter")
+                            .disabled(rating == 0)
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                showSettings = true
+                            } label: {
+                                Image(systemName: "gearshape.fill")
                             }
                         }
-                    }
-            }.presentationDragIndicator(.visible)
-                .presentationDetents([.medium, .large])
 
+                    }
+                }
+
+                .sheet(isPresented: $showSettings) {
+
+                    NavigationStack {
+
+                        Form {
+                            Section {
+                                Toggle("Haptics", isOn: $hapticsEnabled)
+                                Picker("Style", selection: $hapticStyle) {
+                                    ForEach(HapticStyle.allCases) { style in
+                                        Text(style.title).tag(style)
+                                    }
+                                }
+                                .disabled(!hapticsEnabled)
+                            } footer: {
+                                if hapticsEnabled {
+                                    Text(hapticStyle.detail)
+                                } else {
+                                    Text("Haptics are disabled.")
+                                }
+                            }
+                        }.navigationTitle("Settings")
+                            .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    Button(role: .close) {
+                                        showSettings = false
+                                    }
+                                }
+                            }
+                    }.presentationDragIndicator(.visible)
+                        .presentationDetents([.medium, .large])
+
+                }
         }
     }
-}
+
 #Preview {
     ContentView()
 }
