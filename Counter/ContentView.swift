@@ -33,7 +33,18 @@ enum HapticStyle: String, CaseIterable, Identifiable {
         }
     }
 }
+enum ButtonPlacement: String, CaseIterable, Identifiable {
+    case center, bottom
 
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .center: "Centered"
+        case .bottom: "Bottom"
+        }
+    }
+}
 struct ContentView: View {
     @State private var showSettings = false
     @State private var rating: Int = 0
@@ -41,12 +52,12 @@ struct ContentView: View {
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
     @AppStorage("hapticStyle") private var hapticStyle: HapticStyle = .soft
     private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
+    @AppStorage("buttonPlacement") private var buttonPlacement:
+        ButtonPlacement = .center
 
     var body: some View {
 
         NavigationStack {
-
-            
 
             Text("\(rating)")
                 .font(
@@ -57,14 +68,14 @@ struct ContentView: View {
                 .contentTransition(.numericText(value: Double(rating)))
                 .glassEffect(.regular.interactive())
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .safeAreaInset(edge: .bottom){
+                .safeAreaInset(edge: .bottom) {
                     VStack(spacing: 12) {
                         Button {
                             withAnimation { rating += 1 }
                         } label: {
                             Image(systemName: "plus").font(
                                 .system(size: 24, weight: .bold)
-                                
+
                             )
                             .frame(maxWidth: .infinity, minHeight: 50)
 
@@ -77,7 +88,7 @@ struct ContentView: View {
                         } label: {
                             Image(systemName: "minus").font(
                                 .system(size: 24, weight: .bold)
-                                
+
                             )
                             .frame(maxWidth: .infinity, minHeight: 50)
 
@@ -85,83 +96,95 @@ struct ContentView: View {
                         .accessibilityLabel("Decrease")
                         .disabled(rating == 0)
                         .buttonRepeatBehavior(.enabled)
-                        
-                    }
-                    }
-                    .buttonStyle(.glass)
-                    .buttonBorderShape(.roundedRectangle(radius: 999))
-                    .font(.title)
-                    .padding()
-                    .onChange(of: rating) {
-                        if hapticsEnabled {
-                            UIImpactFeedbackGenerator(
-                                style: hapticStyle.uiStyle
-                            )
-                            .impactOccurred()
-                        }
-                    }
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Text("Counter").font(.largeTitle).bold(true)
-                                .fixedSize(horizontal: true, vertical: false)
-
-                        }.sharedBackgroundVisibility(.hidden)
-
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                withAnimation { rating = 0 }
-                            } label: {
-                                Image(systemName: "arrow.counterclockwise")
-                            }
-                            .accessibilityLabel("Reset counter")
-                            .disabled(rating == 0)
-                        }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                showSettings = true
-                            } label: {
-                                Image(systemName: "gearshape.fill")
-                            }
-                        }
 
                     }
                 }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.roundedRectangle(radius: 999))
+                .font(.title)
+                .padding()
+                .onChange(of: rating) {
+                    if hapticsEnabled {
+                        UIImpactFeedbackGenerator(
+                            style: hapticStyle.uiStyle
+                        )
+                        .impactOccurred()
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Text("Counter").font(.largeTitle).bold(true)
+                            .fixedSize(horizontal: true, vertical: false)
 
-                .sheet(isPresented: $showSettings) {
+                    }.sharedBackgroundVisibility(.hidden)
 
-                    NavigationStack {
-
-                        Form {
-                            Section {
-                                Toggle("Haptics", isOn: $hapticsEnabled)
-                                Picker("Style", selection: $hapticStyle) {
-                                    ForEach(HapticStyle.allCases) { style in
-                                        Text(style.title).tag(style)
-                                    }
-                                }
-                                .disabled(!hapticsEnabled)
-                            } footer: {
-                                if hapticsEnabled {
-                                    Text(hapticStyle.detail)
-                                } else {
-                                    Text("Haptics are disabled.")
-                                }
-                            }
-                        }.navigationTitle("Settings")
-                            .navigationBarTitleDisplayMode(.inline)
-                            .toolbar {
-                                ToolbarItem(placement: .topBarTrailing) {
-                                    Button(role: .close) {
-                                        showSettings = false
-                                    }
-                                }
-                            }
-                    }.presentationDragIndicator(.visible)
-                        .presentationDetents([.medium, .large])
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            withAnimation { rating = 0 }
+                        } label: {
+                            Image(systemName: "arrow.counterclockwise")
+                        }
+                        .accessibilityLabel("Reset counter")
+                        .disabled(rating == 0)
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                        }
+                    }
 
                 }
         }
+
+        .sheet(isPresented: $showSettings) {
+
+            NavigationStack {
+
+                Form {
+                    Section("Layout") {
+                        Picker("Button Layout", selection: $buttonPlacement) {
+                            ForEach(ButtonPlacement.allCases) { placement in
+                                Text(placement.title).tag(placement)
+                            }
+                        }
+                    }
+                    Section {
+                        Toggle("Haptics", isOn: $hapticsEnabled)
+                        Picker("Style", selection: $hapticStyle) {
+                            ForEach(HapticStyle.allCases) { style in
+                                Text(style.title).tag(style)
+                            }
+                        }
+                        .disabled(!hapticsEnabled)
+                    } header: {
+                        Text("Haptics")
+                    } footer: {
+                        if hapticsEnabled {
+                            Text(hapticStyle.detail)
+                        } else {
+                            Text("Haptics are disabled.")
+                        }
+                    }
+
+                }.navigationTitle("Settings")
+                    .navigationBarTitleDisplayMode(.inline)
+
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(role: .close) {
+                                showSettings = false
+                            }
+                        }
+                    }
+
+            }.presentationDragIndicator(.visible)
+                .presentationDetents([.medium, .large])
+
+        }
     }
+}
 
 #Preview {
     ContentView()
