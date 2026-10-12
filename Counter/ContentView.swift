@@ -5,8 +5,9 @@
 //  Created by Yashwanth V on 10/10/26.
 //
 
-import SwiftUI
 import AudioToolbox
+import SwiftUI
+
 enum HapticStyle: String, CaseIterable, Identifiable {
     case soft, light, medium, rigid, heavy
 
@@ -50,6 +51,7 @@ struct ContentView: View {
     @State private var rating: Int = 0
     @State private var reset = false
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
+    @AppStorage("soundEnabled") private var soundEnabled = true
     @AppStorage("hapticStyle") private var hapticStyle: HapticStyle = .soft
     private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
     @AppStorage("buttonPlacement") private var buttonPlacement:
@@ -153,7 +155,9 @@ struct ContentView: View {
                 }
             }
             .onChange(of: rating) {
-                AudioServicesPlaySystemSound(1103)
+                if soundEnabled {
+                    AudioServicesPlaySystemSound(1103)
+                }
                 if hapticsEnabled {
                     UIImpactFeedbackGenerator(
                         style: hapticStyle.uiStyle
@@ -194,28 +198,42 @@ struct ContentView: View {
 
                 Form {
                     Section("Layout") {
-                        Picker("Button Layout", selection: $buttonPlacement) {
+                        Picker("Button Placement", selection: $buttonPlacement)
+                        {
                             ForEach(ButtonPlacement.allCases) { placement in
                                 Text(placement.title).tag(placement)
                             }
                         }
                     }
-                    Section {
+                    Section("Touch Feedback") {
                         Toggle("Haptics", isOn: $hapticsEnabled)
-                        Picker("Style", selection: $hapticStyle) {
-                            ForEach(HapticStyle.allCases) { style in
-                                Text(style.title).tag(style)
-                            }
+
+                        NavigationLink {
+
+                            Form {
+                                Section {
+                                    Picker("Style", selection: $hapticStyle) {
+                                        ForEach(HapticStyle.allCases) { style in
+                                            Text(style.title).tag(style)
+                                        }
+                                    }
+                                    .pickerStyle(.inline)
+                                    .labelsHidden()
+
+                                } footer: {
+                                    Text(hapticStyle.detail)
+                                }
+                            }.navigationTitle("Style")
+                                .navigationBarTitleDisplayMode(.inline)
+                        } label: {
+                            LabeledContent(
+                                "Haptic Strength",
+                                value: hapticStyle.title
+                            )
                         }
                         .disabled(!hapticsEnabled)
-                    } header: {
-                        Text("Touch Feedback")
-                    } footer: {
-                        if hapticsEnabled {
-                            Text(hapticStyle.detail)
-                        } else {
-                            Text("Haptics are disabled.")
-                        }
+                        Toggle("Sound", isOn: $soundEnabled)
+
                     }
 
                 }.navigationTitle("Settings")
@@ -228,11 +246,12 @@ struct ContentView: View {
                             }
                         }
                     }
-
-            }.presentationDragIndicator(.visible)
-                .presentationDetents([.medium, .large])
+            }
+            .presentationDragIndicator(.visible)
+            .presentationDetents([.medium, .large])
 
         }
+
     }
 }
 
