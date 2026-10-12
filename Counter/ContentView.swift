@@ -48,14 +48,19 @@ enum ButtonPlacement: String, CaseIterable, Identifiable {
 }
 struct ContentView: View {
     @State private var showSettings = false
-    @AppStorage("rating") private var rating = 0
+    @AppStorage("rating") private var savedRating = 0
+    @State private var rating: Int
     @State private var reset = false
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
     @AppStorage("soundEnabled") private var soundEnabled = true
-    @AppStorage("hapticStyle") private var hapticStyle: HapticStyle = .soft
+    @AppStorage("hapticStyle") private var hapticStyle: HapticStyle = .rigid
     private let impactFeedback = UIImpactFeedbackGenerator(style: .rigid)
     @AppStorage("buttonPlacement") private var buttonPlacement:
         ButtonPlacement = .center
+
+    init() {
+        _rating = State(initialValue: UserDefaults.standard.integer(forKey: "rating"))
+    }
     private var bottomLayout: some View {
         Text("\(rating)")
             .contentTransition(.numericText(value: Double(rating)))
@@ -155,7 +160,7 @@ struct ContentView: View {
                 case .bottom: bottomLayout
                 }
             }
-            .onChange(of: rating) {
+            .onChange(of: rating) { _, newValue in
                 if soundEnabled {
                     AudioServicesPlaySystemSound(1103)
                 }
@@ -165,6 +170,7 @@ struct ContentView: View {
                     )
                     .impactOccurred()
                 }
+                savedRating = newValue
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
