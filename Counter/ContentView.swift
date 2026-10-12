@@ -48,7 +48,7 @@ enum ButtonPlacement: String, CaseIterable, Identifiable {
 }
 struct ContentView: View {
     @State private var showSettings = false
-    @State private var rating: Int = 0
+    @AppStorage("rating") private var rating = 0
     @State private var reset = false
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
     @AppStorage("soundEnabled") private var soundEnabled = true
@@ -58,12 +58,13 @@ struct ContentView: View {
         ButtonPlacement = .center
     private var bottomLayout: some View {
         Text("\(rating)")
+            .contentTransition(.numericText(value: Double(rating)))
+            .animation(.default, value: rating)
             .font(
                 .system(size: 64, weight: .bold, design: .rounded)
                     .monospacedDigit()
             )
             .frame(width: 200, height: 200)
-            .contentTransition(.numericText(value: Double(rating)))
             .glassEffect(.regular.interactive())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .bottom) {
