@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import AudioToolbox
 enum HapticStyle: String, CaseIterable, Identifiable {
     case soft, light, medium, rigid, heavy
 
@@ -153,6 +153,7 @@ struct ContentView: View {
                 }
             }
             .onChange(of: rating) {
+                AudioServicesPlaySystemSound(1103)
                 if hapticsEnabled {
                     UIImpactFeedbackGenerator(
                         style: hapticStyle.uiStyle
